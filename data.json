@@ -1,0 +1,202 @@
+{
+  "settings": {
+    "storeName": "Terrene",
+    "tagline": "Wear the Earth",
+    "currency": "USD",
+    "freeShippingThreshold": 50,
+    "announcement": "🌱 Free shipping on orders over $50 · Every piece is handmade with real botanicals"
+  },
+  "products": [
+    {
+      "id": 1,
+      "slug": "morning-ritual",
+      "name": "Morning Ritual",
+      "material": "Coffee Bean & Sandalwood",
+      "price": 22,
+      "emoji": "☕",
+      "bg": "#8B6914",
+      "badge": "Bestseller",
+      "active": true,
+      "stock": 50,
+      "description": "Real Arabica coffee beans paired with sandalwood beads. A tribute to the quiet magic of your morning ritual — the first sip, the first light, the first moment of peace.",
+      "story": "Every Morning Ritual bracelet begins with Arabica coffee beans sourced from a small family farm in Colombia. After harvest, the beans are slowly sun-dried for three weeks, then carefully drilled by hand. Paired with sustainably harvested sandalwood beads from Australia, each bracelet carries the warmth of the earth and the aroma of your favorite café.",
+      "images": {
+        "main": "images/products/webp/morning-ritual-main.webp",
+        "detail": "images/products/webp/morning-ritual-detail.webp",
+        "wear": "images/products/webp/morning-ritual-wear.webp",
+        "scene": "images/products/webp/morning-ritual-scene.webp"
+      },
+      "specs": {
+        "materials": "Arabica coffee beans, sandalwood beads, elastic cord",
+        "size": "One size — stretches to fit most wrists (6-8 inch / 15-20 cm)",
+        "weight": "Approximately 15g — lightweight and comfortable for all-day wear",
+        "care": "Keep dry. Avoid prolonged water exposure. Store in a cool, dry place. Coffee aroma naturally fades over time — this is part of the charm.",
+        "origin": "Coffee beans from Colombia · Sandalwood from Australia · Hand-assembled in our studio"
+      }
+    },
+    {
+      "id": 2,
+      "slug": "forest-floor",
+      "name": "Forest Floor",
+      "material": "Tagua Nut & Lava Rock",
+      "price": 28,
+      "emoji": "🌰",
+      "bg": "#6B8E23",
+      "badge": null,
+      "active": true,
+      "stock": 35,
+      "description": "Smooth tagua nut beads with porous lava rock accents. Walk through the forest. Feel the earth beneath your feet. This bracelet grounds you — literally and figuratively.",
+      "story": "Tagua nut, known as 'vegetable ivory,' comes from the seeds of the Tagua palm tree native to the Ecuadorian rainforest. Harvested after naturally falling to the forest floor — no trees are ever cut down. We pair these silky-smooth nuts with porous black lava rock beads for a striking contrast of texture and color. The result is a bracelet that feels like a walk through an ancient forest.",
+      "images": {
+        "main": "images/products/webp/forest-floor-main.webp",
+        "detail": "images/products/webp/forest-floor-detail.webp",
+        "wear": "images/products/webp/forest-floor-wear.webp",
+        "scene": "images/products/webp/forest-floor-scene.webp"
+      },
+      "specs": {
+        "materials": "Tagua nut beads, lava rock beads, elastic cord",
+        "size": "One size — stretches to fit most wrists (6-8 inch / 15-20 cm)",
+        "weight": "Approximately 18g",
+        "care": "Tagua nut may darken slightly with wear — this is natural. Avoid water and chemicals. Wipe gently with a dry cloth.",
+        "origin": "Tagua nuts from Ecuador · Lava rock from Indonesia · Hand-assembled in our studio"
+      }
+    },
+    {
+      "id": 3,
+      "slug": "amazon-dawn",
+      "name": "Amazon Dawn",
+      "material": "Acai Seed & Coconut Shell",
+      "price": 26,
+      "emoji": "🫐",
+      "bg": "#5C4033",
+      "badge": null,
+      "active": true,
+      "stock": 40,
+      "description": "Tiny acai seeds from the Amazon rainforest, threaded with coconut shell discs. Light as air, rich with the spirit of the jungle. Wear the dawn of a new day.",
+      "story": "Acai seeds are a byproduct of the acai berry harvest — what was once discarded is now treasured. Each tiny seed is naturally unique in shape and color, ranging from deep purple-brown to charcoal black. We pair them with hand-cut coconut shell discs, creating a bracelet that celebrates the abundance of the Amazon without harming a single tree.",
+      "images": {
+        "main": "images/products/webp/amazon-dawn-main.webp",
+        "detail": "images/products/webp/amazon-dawn-detail.webp",
+        "wear": "images/products/webp/amazon-dawn-wear.webp",
+        "scene": "images/products/webp/amazon-dawn-scene.webp"
+      },
+      "specs": {
+        "materials": "Acai seeds, coconut shell discs, elastic cord",
+        "size": "One size — stretches to fit most wrists (6-8 inch / 15-20 cm)",
+        "weight": "Approximately 12g — our lightest bracelet",
+        "care": "Keep dry. Natural seed colors may vary. Store away from direct sunlight to preserve color.",
+        "origin": "Acai seeds from Brazil · Coconut shell from the Philippines · Hand-assembled in our studio"
+      }
+    },
+    {
+      "id": 4,
+      "slug": "desert-bloom",
+      "name": "Desert Bloom",
+      "material": "Lotus Seed & Terracotta",
+      "price": 24,
+      "emoji": "🌺",
+      "bg": "#C67B4B",
+      "badge": "New",
+      "active": true,
+      "stock": 30,
+      "description": "Sacred lotus seeds with warm terracotta beads. The lotus blooms in muddy water — this bracelet is for the free spirit who finds beauty in unexpected places.",
+      "story": "Lotus seeds have been treasured for centuries in Eastern traditions as symbols of purity, rebirth, and spiritual awakening. Each seed is naturally dried and drilled by hand, preserving its unique organic form. Paired with warm terracotta clay beads, this bracelet is a reminder that the most beautiful things grow from the mud.",
+      "images": {
+        "main": "images/products/webp/desert-bloom-main.webp",
+        "detail": "images/products/webp/desert-bloom-detail.webp",
+        "wear": "images/products/webp/desert-bloom-wear.webp",
+        "scene": "images/products/webp/desert-bloom-scene.webp"
+      },
+      "specs": {
+        "materials": "Lotus seeds, terracotta clay beads, elastic cord",
+        "size": "One size — stretches to fit most wrists (6-8 inch / 15-20 cm)",
+        "weight": "Approximately 16g",
+        "care": "Terracotta beads are porous — avoid water. Lotus seeds may develop a natural patina over time. Store dry.",
+        "origin": "Lotus seeds from India · Terracotta beads handmade in Mexico · Hand-assembled in our studio"
+      }
+    },
+    {
+      "id": 5,
+      "slug": "ocean-drift",
+      "name": "Ocean Drift",
+      "material": "Driftwood Seed & Aquamarine",
+      "price": 30,
+      "emoji": "🌊",
+      "bg": "#5B7B8A",
+      "badge": null,
+      "active": true,
+      "stock": 25,
+      "description": "Sea-worn driftwood seeds paired with aquamarine chips. A piece of the shoreline you can carry with you — wherever the tide takes you.",
+      "story": "Our driftwood seeds come from the sea grape tree, whose seeds drift across oceans before washing ashore. Each seed has been naturally polished by salt water and sand — a process that takes months or even years. We pair these ocean travelers with aquamarine chips, a stone long believed to protect sailors and calm the waves.",
+      "images": {
+        "main": "images/products/webp/ocean-drift-main.webp",
+        "detail": "images/products/webp/ocean-drift-detail.webp",
+        "wear": "images/products/webp/ocean-drift-wear.webp",
+        "scene": "images/products/webp/ocean-drift-scene.webp"
+      },
+      "specs": {
+        "materials": "Driftwood seeds, aquamarine chips, elastic cord",
+        "size": "One size — stretches to fit most wrists (6-8 inch / 15-20 cm)",
+        "weight": "Approximately 17g",
+        "care": "Aquamarine is sensitive to prolonged sun exposure. Store in a cool place. Keep dry.",
+        "origin": "Driftwood seeds from the Caribbean · Aquamarine from Brazil · Hand-assembled in our studio"
+      }
+    },
+    {
+      "id": 6,
+      "slug": "garden-path",
+      "name": "Garden Path",
+      "material": "Mixed Botanicals & Brass",
+      "price": 34,
+      "emoji": "🌿",
+      "bg": "#8F9779",
+      "badge": null,
+      "active": true,
+      "stock": 20,
+      "description": "A curated mix of seeds, beans, and a single brass accent bead. For the collector who sees the extraordinary in the ordinary. Every garden path leads somewhere beautiful.",
+      "story": "Garden Path is our most eclectic piece — a carefully curated blend of our favorite botanical beads: coffee beans, lotus seeds, acai seeds, and tagua nuts, united by a single warm brass accent. Each bracelet is a miniature garden, unique in its composition. No two Garden Path bracelets are exactly the same.",
+      "images": {
+        "main": "images/products/webp/garden-path-main.webp",
+        "detail": "images/products/webp/garden-path-detail.webp",
+        "wear": "images/products/webp/garden-path-wear.webp",
+        "scene": "images/products/webp/garden-path-scene.webp"
+      },
+      "specs": {
+        "materials": "Mixed botanical seeds, brass accent bead, elastic cord",
+        "size": "One size — stretches to fit most wrists (6-8 inch / 15-20 cm)",
+        "weight": "Approximately 16g",
+        "care": "Brass may develop a natural patina over time — polish gently if desired. Keep dry. Each bracelet is unique in seed composition.",
+        "origin": "Seeds from Colombia, Ecuador, Brazil & India · Brass bead from Italy · Hand-assembled in our studio"
+      }
+    }
+  ],
+  "orders": [
+    {
+      "id": "ORD-001",
+      "date": "2026-07-20",
+      "customer": { "name": "Sarah K.", "email": "sarah@example.com", "address": "123 Main St, Los Angeles, CA 90001" },
+      "items": [{ "productId": 1, "name": "Morning Ritual", "price": 22, "quantity": 2 }],
+      "total": 44,
+      "status": "shipped",
+      "tracking": "USPS-9400111899223456789012"
+    },
+    {
+      "id": "ORD-002",
+      "date": "2026-07-22",
+      "customer": { "name": "Emma L.", "email": "emma@example.com", "address": "456 Oak Ave, Portland, OR 97201" },
+      "items": [{ "productId": 3, "name": "Amazon Dawn", "price": 26, "quantity": 1 }, { "productId": 6, "name": "Garden Path", "price": 34, "quantity": 1 }],
+      "total": 60,
+      "status": "processing",
+      "tracking": null
+    },
+    {
+      "id": "ORD-003",
+      "date": "2026-07-24",
+      "customer": { "name": "Mike R.", "email": "mike@example.com", "address": "789 Pine St, Austin, TX 78701" },
+      "items": [{ "productId": 1, "name": "Morning Ritual", "price": 22, "quantity": 1 }],
+      "total": 22,
+      "status": "pending",
+      "tracking": null
+    }
+  ]
+}

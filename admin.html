@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — Terrene</title>
+  <link rel="stylesheet" href="admin.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand">
+        <svg class="sidebar-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="22" r="12" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M20 10 C20 6, 14 4, 14 8 C14 12, 20 14, 20 18" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M20 10 C20 6, 26 4, 26 8 C26 12, 20 14, 20 18" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+        <span>Terrene Admin</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="#" class="nav-item active" data-tab="products">
+          <span class="nav-icon">📦</span> Products
+        </a>
+        <a href="#" class="nav-item" data-tab="orders">
+          <span class="nav-icon">📋</span> Orders
+        </a>
+        <a href="#" class="nav-item" data-tab="settings-tab">
+          <span class="nav-icon">⚙️</span> Settings
+        </a>
+        <a href="#" class="nav-item" data-tab="export">
+          <span class="nav-icon">💾</span> Export
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn btn-ghost btn-sm" onclick="loadFromFile()">📂 Import JSON</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetData()">🔄 Reset</button>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+      <!-- Products Tab -->
+      <div class="tab-content active" id="tab-products">
+        <div class="tab-header">
+          <h2>Products <span class="count" id="product-count">0</span></h2>
+          <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="products-table">
+            <thead>
+              <tr>
+                <th width="60">Image</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Status</th>
+                <th width="120">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Orders Tab -->
+      <div class="tab-content" id="tab-orders">
+        <div class="tab-header">
+          <h2>Orders <span class="count" id="order-count">0</span></h2>
+          <div class="order-filters">
+            <select id="order-status-filter" onchange="renderOrders()">
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="processing">Processing</option>
+              <option value="shipped">Shipped</option>
+              <option value="completed">Completed</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="orders-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th width="140">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Settings Tab -->
+      <div class="tab-content" id="tab-settings-tab">
+        <div class="tab-header">
+          <h2>Store Settings</h2>
+          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+        <div class="settings-form" id="settings-form"></div>
+      </div>
+
+      <!-- Export Tab -->
+      <div class="tab-content" id="tab-export">
+        <div class="tab-header">
+          <h2>Export & Deploy</h2>
+        </div>
+        <div class="export-section">
+          <div class="export-card">
+            <h3>📄 Export data.json</h3>
+            <p>Download the current data as a JSON file. Upload this to your site to update products and orders.</p>
+            <button class="btn btn-primary" onclick="exportJSON()">Download data.json</button>
+          </div>
+          <div class="export-card">
+            <h3>📦 Export Full Site Package</h3>
+            <p>Download a zip with all files (including data.json). Unzip and upload to GitHub → Vercel auto-deploys.</p>
+            <button class="btn btn-outline" onclick="alert('Open this admin page in your browser, edit data, export JSON, then upload to GitHub. The site reads data.json live.')">How to Deploy</button>
+          </div>
+          <div class="export-card">
+            <h3>🔗 Live Preview</h3>
+            <p>After updating data.json, your live site at terrene-flax.vercel.app will reflect changes immediately (no rebuild needed — the site reads data.json at runtime).</p>
+            <a href="/" target="_blank" class="btn btn-outline">Open Site →</a>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Product Modal -->
+  <div class="modal-overlay" id="product-modal-overlay"></div>
+  <div class="modal" id="product-modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Add Product</h3>
+      <button class="modal-close" onclick="closeProductModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" id="prod-name" placeholder="Morning Ritual">
+        </div>
+        <div class="form-group">
+          <label>Slug</label>
+          <input type="text" id="prod-slug" placeholder="morning-ritual">
+        </div>
+        <div class="form-group">
+          <label>Material</label>
+          <input type="text" id="prod-material" placeholder="Coffee Bean & Sandalwood">
+        </div>
+        <div class="form-group">
+          <label>Price ($)</label>
+          <input type="number" id="prod-price" placeholder="22" step="0.01">
+        </div>
+        <div class="form-group">
+          <label>Emoji</label>
+          <input type="text" id="prod-emoji" placeholder="☕">
+        </div>
+        <div class="form-group">
+          <label>Background Color</label>
+          <input type="text" id="prod-bg" placeholder="#8B6914">
+        </div>
+        <div class="form-group">
+          <label>Badge</label>
+          <input type="text" id="prod-badge" placeholder="Bestseller (leave empty for none)">
+        </div>
+        <div class="form-group">
+          <label>Stock</label>
+          <input type="number" id="prod-stock" placeholder="50">
+        </div>
+        <div class="form-group form-full">
+          <label>Description</label>
+          <textarea id="prod-description" rows="3" placeholder="Short product description..."></textarea>
+        </div>
+        <div class="form-group form-full">
+          <label>Story</label>
+          <textarea id="prod-story" rows="4" placeholder="Full product story..."></textarea>
+        </div>
+      </div>
+
+      <h4 style="margin: 1rem 0 0.5rem;">Images</h4>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Main Image</label>
+          <input type="text" id="prod-img-main" placeholder="images/products/name-main.png">
+        </div>
+        <div class="form-group">
+          <label>Detail Image</label>
+          <input type="text" id="prod-img-detail" placeholder="images/products/name-detail.png">
+        </div>
+        <div class="form-group">
+          <label>Wear Image</label>
+          <input type="text" id="prod-img-wear" placeholder="images/products/name-wear.png">
+        </div>
+        <div class="form-group">
+          <label>Scene Image</label>
+          <input type="text" id="prod-img-scene" placeholder="images/products/name-scene.png">
+        </div>
+      </div>
+
+      <h4 style="margin: 1rem 0 0.5rem;">Specs</h4>
+      <div class="form-grid">
+        <div class="form-group form-full"><label>Materials</label><input type="text" id="prod-specs-materials"></div>
+        <div class="form-group form-full"><label>Size</label><input type="text" id="prod-specs-size"></div>
+        <div class="form-group form-full"><label>Weight</label><input type="text" id="prod-specs-weight"></div>
+        <div class="form-group form-full"><label>Care</label><input type="text" id="prod-specs-care"></div>
+        <div class="form-group form-full"><label>Origin</label><input type="text" id="prod-specs-origin"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeProductModal()">Cancel</button>
+      <button class="btn btn-primary" id="modal-save-btn" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="admin.js"></script>
+</body>
+</html>

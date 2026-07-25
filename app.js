@@ -2,112 +2,186 @@
 // TERRENE — Store Application
 // ============================================
 
-// --- Product Data ---
-const products = [
-  {
-    id: 1,
-    name: 'Morning Ritual',
-    material: 'Coffee Bean & Sandalwood',
-    price: 22,
-    emoji: '☕',
-    bg: '#8B6914',
-    badge: 'Bestseller',
-    description: 'Real Arabica coffee beans paired with sandalwood beads. A tribute to your morning ritual.'
-  },
-  {
-    id: 2,
-    name: 'Forest Floor',
-    material: 'Tagua Nut & Lava Rock',
-    price: 28,
-    emoji: '🌰',
-    bg: '#6B8E23',
-    badge: null,
-    description: 'Smooth tagua nut beads with porous lava rock accents. Earthy and grounding.'
-  },
-  {
-    id: 3,
-    name: 'Amazon Dawn',
-    material: 'Acai Seed & Coconut Shell',
-    price: 26,
-    emoji: '🫐',
-    bg: '#5C4033',
-    badge: null,
-    description: 'Tiny acai seeds from the Amazon, threaded with coconut shell discs. Light as air.'
-  },
-  {
-    id: 4,
-    name: 'Desert Bloom',
-    material: 'Lotus Seed & Terracotta',
-    price: 24,
-    emoji: '🌺',
-    bg: '#C67B4B',
-    badge: 'New',
-    description: 'Sacred lotus seeds with warm terracotta beads. For the free spirit.'
-  },
-  {
-    id: 5,
-    name: 'Ocean Drift',
-    material: 'Driftwood Seed & Aquamarine',
-    price: 30,
-    emoji: '🌊',
-    bg: '#5B7B8A',
-    badge: null,
-    description: 'Sea-worn driftwood seeds paired with aquamarine chips. A piece of the shoreline.'
-  },
-  {
-    id: 6,
-    name: 'Garden Path',
-    material: 'Mixed Botanicals & Brass',
-    price: 34,
-    emoji: '🌿',
-    bg: '#8F9779',
-    badge: null,
-    description: 'A curated mix of seeds, beans, and a single brass accent. For the collector.'
+let products = [];
+let settings = {};
+
+// --- Load data from data.json ---
+async function loadData() {
+  try {
+    const resp = await fetch('data.json');
+    const data = await resp.json();
+    products = data.products.filter(p => p.active !== false);
+    settings = data.settings || {};
+    return true;
+  } catch (err) {
+    console.error('Failed to load data.json, using fallback', err);
+    return false;
   }
-];
+}
 
 // --- Cart State ---
 let cart = [];
 
-// --- Render Products ---
+// --- Get product by ID ---
+function getProduct(id) {
+  return products.find(p => p.id === parseInt(id));
+}
+
+// --- Render Products on Homepage ---
 function renderProducts() {
   const grid = document.getElementById('product-grid');
   if (!grid) return;
 
   grid.innerHTML = products.map(p => `
-    <div class="product-card" data-id="${p.id}">
-      <div class="product-image" style="background: linear-gradient(135deg, ${p.bg}22, ${p.bg}44, ${p.bg}22);">
-        <div class="img-placeholder">${p.emoji}</div>
+    <a href="product.html?id=${p.id}" class="product-card" data-id="${p.id}">
+      <div class="product-image">
+        <img src="${p.images.main}" alt="${p.name} — ${p.material}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'>${p.emoji}</div>'">
         ${p.badge ? `<span class="product-badge">${p.badge}</span>` : ''}
       </div>
       <div class="product-info">
         <h3 class="product-name">${p.name}</h3>
         <p class="product-material">${p.material}</p>
         <p class="product-price">$${p.price}.00</p>
-        <button class="product-add" onclick="addToCart(${p.id})">Add to Cart</button>
+        <button class="product-add" onclick="event.preventDefault(); addToCart(${p.id})">Add to Cart</button>
+      </div>
+    </a>
+  `).join('');
+}
+
+// --- Render Product Detail Page ---
+function renderProductDetail() {
+  const container = document.getElementById('product-detail');
+  if (!container) return;
+
+  const params = new URLSearchParams(window.location.search);
+  const productId = params.get('id');
+  const product = getProduct(productId);
+
+  if (!product) {
+    container.innerHTML = `
+      <div class="not-found">
+        <h2>Product Not Found</h2>
+        <p>This piece may have been gathered by the earth. <a href="/">Return to the collection.</a></p>
+      </div>`;
+    document.title = 'Not Found — Terrene';
+    return;
+  }
+
+  document.title = `${product.name} — ${settings.storeName || 'Terrene'}`;
+
+  container.innerHTML = `
+    <div class="product-detail-layout">
+      <div class="product-gallery">
+        <div class="gallery-main">
+          <img id="gallery-main-img" src="${product.images.main}" alt="${product.name}" />
+        </div>
+        <div class="gallery-thumbs">
+          <button class="thumb active" data-img="${product.images.main}">
+            <img src="${product.images.main}" alt="Main" loading="lazy" />
+          </button>
+          <button class="thumb" data-img="${product.images.detail}">
+            <img src="${product.images.detail}" alt="Detail" loading="lazy" />
+          </button>
+          <button class="thumb" data-img="${product.images.wear}">
+            <img src="${product.images.wear}" alt="Worn" loading="lazy" />
+          </button>
+          <button class="thumb" data-img="${product.images.scene}">
+            <img src="${product.images.scene}" alt="Scene" loading="lazy" />
+          </button>
+        </div>
+      </div>
+
+      <div class="product-detail-info">
+        ${product.badge ? `<span class="product-badge">${product.badge}</span>` : ''}
+        <h1 class="detail-name">${product.name}</h1>
+        <p class="detail-material">${product.material}</p>
+        <p class="detail-price">$${product.price}.00 USD</p>
+        <p class="detail-description">${product.description}</p>
+
+        <div class="detail-actions">
+          <button class="btn btn-primary btn-block" onclick="addToCart(${product.id})">
+            Add to Cart — $${product.price}.00
+          </button>
+        </div>
+
+        <div class="detail-features">
+          <div class="feature"><span class="feature-icon">🌱</span><span>100% natural materials</span></div>
+          <div class="feature"><span class="feature-icon">🤲</span><span>Handcrafted — each piece unique</span></div>
+          <div class="feature"><span class="feature-icon">📦</span><span>Free shipping over $${settings.freeShippingThreshold || 50}</span></div>
+          <div class="feature"><span class="feature-icon">🔄</span><span>30-day returns</span></div>
+        </div>
       </div>
     </div>
-  `).join('');
+
+    <div class="product-story-section">
+      <div class="product-story-grid">
+        <div class="product-story-image">
+          <img src="${product.images.scene}" alt="${product.name} — Lifestyle" loading="lazy" />
+        </div>
+        <div class="product-story-text">
+          <p class="story-eyebrow">The Story</p>
+          <h2>Behind the ${product.name}</h2>
+          <p>${product.story}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="product-specs">
+      <h2>Details & Care</h2>
+      <div class="specs-grid">
+        <div class="spec-item"><h4>Materials</h4><p>${product.specs.materials}</p></div>
+        <div class="spec-item"><h4>Size</h4><p>${product.specs.size}</p></div>
+        <div class="spec-item"><h4>Weight</h4><p>${product.specs.weight}</p></div>
+        <div class="spec-item"><h4>Care</h4><p>${product.specs.care}</p></div>
+        <div class="spec-item spec-full"><h4>Origin</h4><p>${product.specs.origin}</p></div>
+      </div>
+    </div>
+
+    <div class="related-products">
+      <h2>You May Also Like</h2>
+      <div class="related-grid">
+        ${products.filter(p => p.id !== product.id).slice(0, 3).map(p => `
+          <a href="product.html?id=${p.id}" class="product-card">
+            <div class="product-image">
+              <img src="${p.images.main}" alt="${p.name}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'img-placeholder\\'>${p.emoji}</div>'">
+            </div>
+            <div class="product-info">
+              <h3 class="product-name">${p.name}</h3>
+              <p class="product-material">${p.material}</p>
+              <p class="product-price">$${p.price}.00</p>
+            </div>
+          </a>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.querySelectorAll('.gallery-thumbs .thumb').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.gallery-thumbs .thumb').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      document.getElementById('gallery-main-img').src = this.dataset.img;
+    });
+  });
 }
 
 // --- Cart Functions ---
 function addToCart(productId) {
-  const product = products.find(p => p.id === productId);
+  const product = products.find(p => p.id === parseInt(productId));
   if (!product) return;
 
-  const existing = cart.find(item => item.id === productId);
+  const existing = cart.find(item => item.id === parseInt(productId));
   if (existing) {
     existing.quantity++;
   } else {
     cart.push({ ...product, quantity: 1 });
   }
-
   updateCart();
   openCart();
 }
 
 function removeFromCart(productId) {
-  cart = cart.filter(item => item.id !== productId);
+  cart = cart.filter(item => item.id !== parseInt(productId));
   updateCart();
 }
 
@@ -118,14 +192,17 @@ function updateCart() {
 
   const itemsEl = document.getElementById('cart-items');
   const footerEl = document.getElementById('cart-footer');
+  if (!itemsEl) return;
 
   if (cart.length === 0) {
     itemsEl.innerHTML = '<p class="cart-empty">Your cart is empty.<br>Find something you love from the earth.</p>';
-    footerEl.style.display = 'none';
+    if (footerEl) footerEl.style.display = 'none';
   } else {
     itemsEl.innerHTML = cart.map(item => `
       <div class="cart-item">
-        <div class="cart-item-image" style="background: ${item.bg}22;">${item.emoji}</div>
+        <div class="cart-item-image">
+          <img src="${item.images.main}" alt="${item.name}" onerror="this.textContent='${item.emoji}'" />
+        </div>
         <div class="cart-item-info">
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-price">$${item.price}.00 × ${item.quantity}</div>
@@ -133,64 +210,63 @@ function updateCart() {
         <button class="cart-item-remove" onclick="removeFromCart(${item.id})">✕</button>
       </div>
     `).join('');
-    footerEl.style.display = 'block';
-
+    if (footerEl) footerEl.style.display = 'block';
     const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-    document.getElementById('cart-total-price').textContent = `$${total}.00`;
+    const totalEl = document.getElementById('cart-total-price');
+    if (totalEl) totalEl.textContent = `$${total}.00`;
   }
 }
 
 function openCart() {
-  document.getElementById('cart-sidebar').classList.add('open');
-  document.getElementById('cart-overlay').classList.add('open');
+  document.getElementById('cart-sidebar')?.classList.add('open');
+  document.getElementById('cart-overlay')?.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
 function closeCart() {
-  document.getElementById('cart-sidebar').classList.remove('open');
-  document.getElementById('cart-overlay').classList.remove('open');
+  document.getElementById('cart-sidebar')?.classList.remove('open');
+  document.getElementById('cart-overlay')?.classList.remove('open');
   document.body.style.overflow = '';
 }
 
-// --- Header Scroll Effect ---
+// --- Header Scroll ---
 function handleScroll() {
   const header = document.querySelector('.header');
-  if (window.scrollY > 10) {
-    header.classList.add('scrolled');
-  } else {
-    header.classList.remove('scrolled');
-  }
+  if (!header) return;
+  header.classList.toggle('scrolled', window.scrollY > 10);
 }
 
-// --- Smooth Anchor Scrolling ---
+// --- Smooth Scroll ---
 function initSmoothScroll() {
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function(e) {
       const target = document.querySelector(this.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
     });
   });
 }
 
 // --- Init ---
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadData();
+
+  // Update announcement bar if settings loaded
+  if (settings.announcement) {
+    const bar = document.querySelector('.announcement-bar span');
+    if (bar) bar.textContent = settings.announcement;
+  }
+
   renderProducts();
+  renderProductDetail();
   updateCart();
 
-  // Cart toggle
-  document.getElementById('cart-btn').addEventListener('click', openCart);
-  document.getElementById('cart-close').addEventListener('click', closeCart);
-  document.getElementById('cart-overlay').addEventListener('click', closeCart);
+  document.getElementById('cart-btn')?.addEventListener('click', openCart);
+  document.getElementById('cart-close')?.addEventListener('click', closeCart);
+  document.getElementById('cart-overlay')?.addEventListener('click', closeCart);
 
-  // Scroll
   window.addEventListener('scroll', handleScroll, { passive: true });
-
-  // Smooth scroll
   initSmoothScroll();
 
-  console.log('🌱 Terrene — Wear the Earth');
-  console.log(`${products.length} products ready. Cart is waiting.`);
+  console.log(`🌱 ${settings.storeName || 'Terrene'} — ${settings.tagline || 'Wear the Earth'}`);
+  console.log(`${products.length} products loaded from data.json`);
 });
