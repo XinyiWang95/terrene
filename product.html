@@ -107,10 +107,14 @@
         <span>Total</span>
         <span id="cart-total-price">$0.00</span>
       </div>
-      <button class="btn btn-primary btn-block">Checkout</button>
+      <div id="paypal-button-container"></div>
+      <button class="btn btn-primary btn-block" id="checkout-fallback" style="display:none;">Checkout via PayPal</button>
+      <p class="checkout-note">🔒 Secure checkout via PayPal · No account needed</p>
     </div>
   </aside>
 
+  <script src="https://www.paypal.com/sdk/js?client-id=AZBHmI4Dd2C38fX05GgBwP5ar7pooLJ3kbbKfvloXMPkipkqy6OuvO-WI5j_RGrb_WlTW0MSbIrz-1dz&currency=USD"></script>
+  <script src="supabase.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
