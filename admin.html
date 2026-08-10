@@ -1,16 +1,52 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin — Terrene</title>
+  <title>管理后台 — Terrene</title>
   <link rel="stylesheet" href="admin.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .login-screen{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,#f5f1ea,#e8e0d3);z-index:1000;padding:1rem}
+    .login-card{background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.12);
+      padding:2.5rem 2rem;width:100%;max-width:360px;text-align:center}
+    .login-card h2{font-size:1.4rem;margin:.25rem 0 .25rem;color:#2a2521}
+    .login-sub{color:#8a8077;font-size:.85rem;margin-bottom:1.5rem}
+    #login-form{display:flex;flex-direction:column;gap:.75rem}
+    #login-form input{padding:.7rem .9rem;border:1px solid #ddd6c9;border-radius:8px;font-size:.9rem}
+    #login-form input:focus{outline:none;border-color:#a9744f}
+    .login-error{color:#c0392b;font-size:.8rem;min-height:1rem;margin:.5rem 0 0}
+    .login-hint{color:#a79c8e;font-size:.72rem;margin-top:1rem}
+    .btn-block{width:100%;padding:.75rem}
+  </style>
 </head>
 <body>
-  <div class="admin-layout">
-    <!-- Sidebar -->
+  <!-- 登录保护：未登录显示登录框，已登录才显示后台 -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-card">
+      <div class="login-logo" style="width:48px;height:48px;color:#a9744f;margin:0 auto .25rem;">
+        <svg viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;">
+          <circle cx="20" cy="22" r="12" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M20 10 C20 6, 14 4, 14 8 C14 12, 20 14, 20 18" fill="none" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M20 10 C20 6, 26 4, 26 8 C26 12, 20 14, 20 18" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        </svg>
+      </div>
+      <h2>Terrene 管理后台</h2>
+      <p class="login-sub">请登录后管理商品和订单</p>
+      <form id="login-form" onsubmit="return doLogin(event)">
+        <input type="email" id="login-email" placeholder="管理员邮箱" autocomplete="username" required>
+        <input type="password" id="login-password" placeholder="密码" autocomplete="current-password" required>
+        <button type="submit" class="btn btn-primary btn-block" id="login-btn">登 录</button>
+      </form>
+      <p id="login-error" class="login-error"></p>
+      <p class="login-hint">账号在 Supabase → Authentication → Users 中创建</p>
+    </div>
+  </div>
+
+  <div class="admin-layout" id="admin-app" style="display:none">
+    <!-- 侧边栏 -->
     <aside class="admin-sidebar">
       <div class="sidebar-brand">
         <svg class="sidebar-logo" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
@@ -18,46 +54,51 @@
           <path d="M20 10 C20 6, 14 4, 14 8 C14 12, 20 14, 20 18" fill="none" stroke="currentColor" stroke-width="1.2"/>
           <path d="M20 10 C20 6, 26 4, 26 8 C26 12, 20 14, 20 18" fill="none" stroke="currentColor" stroke-width="1.2"/>
         </svg>
-        <span>Terrene Admin</span>
+        <span>Terrene 管理</span>
       </div>
       <nav class="sidebar-nav">
         <a href="#" class="nav-item active" data-tab="products">
-          <span class="nav-icon">📦</span> Products
+          <span class="nav-icon">📦</span> 商品管理
         </a>
         <a href="#" class="nav-item" data-tab="orders">
-          <span class="nav-icon">📋</span> Orders
+          <span class="nav-icon">📋</span> 订单管理
         </a>
         <a href="#" class="nav-item" data-tab="settings-tab">
-          <span class="nav-icon">⚙️</span> Settings
+          <span class="nav-icon">⚙️</span> 店铺设置
         </a>
         <a href="#" class="nav-item" data-tab="export">
-          <span class="nav-icon">💾</span> Export
+          <span class="nav-icon">💾</span> 数据导出
         </a>
       </nav>
+      <div class="sidebar-status" id="sidebar-status" style="padding:0.5rem 1rem;font-size:0.7rem;color:var(--text-muted);border-top:1px solid var(--border);">
+        ⏳ 检查连接中...
+      </div>
       <div class="sidebar-footer">
-        <button class="btn btn-ghost btn-sm" onclick="loadFromFile()">📂 Import JSON</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetData()">🔄 Reset</button>
+        <button class="btn btn-ghost btn-sm" onclick="syncFromSupabase()">🔄 同步</button>
+        <button class="btn btn-ghost btn-sm" onclick="loadFromFile()">📂 导入</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetData()">🗑️ 重置</button>
+        <button class="btn btn-ghost btn-sm" onclick="doLogout()">🚪 退出</button>
       </div>
     </aside>
 
-    <!-- Main Content -->
+    <!-- 主内容区 -->
     <main class="admin-main">
-      <!-- Products Tab -->
+      <!-- 商品管理 -->
       <div class="tab-content active" id="tab-products">
         <div class="tab-header">
-          <h2>Products <span class="count" id="product-count">0</span></h2>
-          <button class="btn btn-primary" onclick="openProductModal()">+ Add Product</button>
+          <h2>商品管理 <span class="count" id="product-count">0</span></h2>
+          <button class="btn btn-primary" onclick="openProductModal()">+ 添加商品</button>
         </div>
         <div class="table-wrapper">
           <table class="data-table" id="products-table">
             <thead>
               <tr>
-                <th width="60">Image</th>
-                <th>Name</th>
-                <th>Price</th>
-                <th>Stock</th>
-                <th>Status</th>
-                <th width="120">Actions</th>
+                <th width="60">图片</th>
+                <th>名称</th>
+                <th>价格</th>
+                <th>库存</th>
+                <th>状态</th>
+                <th width="120">操作</th>
               </tr>
             </thead>
             <tbody id="products-tbody"></tbody>
@@ -65,18 +106,18 @@
         </div>
       </div>
 
-      <!-- Orders Tab -->
+      <!-- 订单管理 -->
       <div class="tab-content" id="tab-orders">
         <div class="tab-header">
-          <h2>Orders <span class="count" id="order-count">0</span></h2>
+          <h2>订单管理 <span class="count" id="order-count">0</span></h2>
           <div class="order-filters">
             <select id="order-status-filter" onchange="renderOrders()">
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="all">全部状态</option>
+              <option value="paid">已付款</option>
+              <option value="processing">处理中</option>
+              <option value="shipped">已发货</option>
+              <option value="completed">已完成</option>
+              <option value="cancelled">已取消</option>
             </select>
           </div>
         </div>
@@ -84,13 +125,13 @@
           <table class="data-table" id="orders-table">
             <thead>
               <tr>
-                <th>Order #</th>
-                <th>Date</th>
-                <th>Customer</th>
-                <th>Items</th>
-                <th>Total</th>
-                <th>Status</th>
-                <th width="140">Actions</th>
+                <th>订单号</th>
+                <th>日期</th>
+                <th>客户</th>
+                <th>商品</th>
+                <th>金额</th>
+                <th>状态</th>
+                <th width="140">操作</th>
               </tr>
             </thead>
             <tbody id="orders-tbody"></tbody>
@@ -98,130 +139,132 @@
         </div>
       </div>
 
-      <!-- Settings Tab -->
+      <!-- 店铺设置 -->
       <div class="tab-content" id="tab-settings-tab">
         <div class="tab-header">
-          <h2>Store Settings</h2>
-          <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+          <h2>店铺设置</h2>
+          <button class="btn btn-primary" onclick="saveSettings()">保存设置</button>
         </div>
         <div class="settings-form" id="settings-form"></div>
       </div>
 
-      <!-- Export Tab -->
+      <!-- 数据导出 -->
       <div class="tab-content" id="tab-export">
         <div class="tab-header">
-          <h2>Export & Deploy</h2>
+          <h2>数据导出与部署</h2>
         </div>
         <div class="export-section">
           <div class="export-card">
-            <h3>📄 Export data.json</h3>
-            <p>Download the current data as a JSON file. Upload this to your site to update products and orders.</p>
-            <button class="btn btn-primary" onclick="exportJSON()">Download data.json</button>
+            <h3>📄 导出 data.json</h3>
+            <p>下载当前数据为 JSON 文件，可用于备份或迁移。</p>
+            <button class="btn btn-primary" onclick="exportJSON()">下载 data.json</button>
           </div>
           <div class="export-card">
-            <h3>📦 Export Full Site Package</h3>
-            <p>Download a zip with all files (including data.json). Unzip and upload to GitHub → Vercel auto-deploys.</p>
-            <button class="btn btn-outline" onclick="alert('Open this admin page in your browser, edit data, export JSON, then upload to GitHub. The site reads data.json live.')">How to Deploy</button>
+            <h3>📦 数据说明</h3>
+            <p>当前数据存储在 Supabase 云数据库。商品修改实时生效，订单付款后自动入库。</p>
+            <button class="btn btn-outline" onclick="alert('当前使用 Supabase 云数据库。修改商品 → 保存后立即同步到网站。无需导出。')">查看说明</button>
           </div>
           <div class="export-card">
-            <h3>🔗 Live Preview</h3>
-            <p>After updating data.json, your live site at terrene-flax.vercel.app will reflect changes immediately (no rebuild needed — the site reads data.json at runtime).</p>
-            <a href="/" target="_blank" class="btn btn-outline">Open Site →</a>
+            <h3>🔗 网站预览</h3>
+            <p>点击下方按钮打开前台网站，查看最新效果。</p>
+            <a href="/" target="_blank" class="btn btn-outline">打开网站 →</a>
           </div>
         </div>
       </div>
     </main>
   </div>
 
-  <!-- Product Modal -->
+  <!-- 商品编辑弹窗 -->
   <div class="modal-overlay" id="product-modal-overlay"></div>
   <div class="modal" id="product-modal">
     <div class="modal-header">
-      <h3 id="modal-title">Add Product</h3>
+      <h3 id="modal-title">添加商品</h3>
       <button class="modal-close" onclick="closeProductModal()">✕</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group">
-          <label>Name</label>
-          <input type="text" id="prod-name" placeholder="Morning Ritual">
+          <label>商品名称</label>
+          <input type="text" id="prod-name" placeholder="例如：Morning Ritual">
         </div>
         <div class="form-group">
-          <label>Slug</label>
-          <input type="text" id="prod-slug" placeholder="morning-ritual">
+          <label>英文别名</label>
+          <input type="text" id="prod-slug" placeholder="例如：morning-ritual">
         </div>
         <div class="form-group">
-          <label>Material</label>
-          <input type="text" id="prod-material" placeholder="Coffee Bean & Sandalwood">
+          <label>材质</label>
+          <input type="text" id="prod-material" placeholder="例如：Coffee Bean & Sandalwood">
         </div>
         <div class="form-group">
-          <label>Price ($)</label>
+          <label>价格 ($)</label>
           <input type="number" id="prod-price" placeholder="22" step="0.01">
         </div>
         <div class="form-group">
-          <label>Emoji</label>
+          <label>图标</label>
           <input type="text" id="prod-emoji" placeholder="☕">
         </div>
         <div class="form-group">
-          <label>Background Color</label>
+          <label>背景色</label>
           <input type="text" id="prod-bg" placeholder="#8B6914">
         </div>
         <div class="form-group">
-          <label>Badge</label>
-          <input type="text" id="prod-badge" placeholder="Bestseller (leave empty for none)">
+          <label>标签</label>
+          <input type="text" id="prod-badge" placeholder="例如：热卖（留空则无标签）">
         </div>
         <div class="form-group">
-          <label>Stock</label>
+          <label>库存数量</label>
           <input type="number" id="prod-stock" placeholder="50">
         </div>
         <div class="form-group form-full">
-          <label>Description</label>
-          <textarea id="prod-description" rows="3" placeholder="Short product description..."></textarea>
+          <label>简短描述</label>
+          <textarea id="prod-description" rows="3" placeholder="商品简介..."></textarea>
         </div>
         <div class="form-group form-full">
-          <label>Story</label>
-          <textarea id="prod-story" rows="4" placeholder="Full product story..."></textarea>
+          <label>品牌故事</label>
+          <textarea id="prod-story" rows="4" placeholder="详细故事..."></textarea>
         </div>
       </div>
 
-      <h4 style="margin: 1rem 0 0.5rem;">Images</h4>
+      <h4 style="margin: 1rem 0 0.5rem;">商品图片</h4>
       <div class="form-grid">
         <div class="form-group">
-          <label>Main Image</label>
-          <input type="text" id="prod-img-main" placeholder="images/products/name-main.png">
+          <label>主图</label>
+          <input type="text" id="prod-img-main" placeholder="images/products/xxx-main.webp">
         </div>
         <div class="form-group">
-          <label>Detail Image</label>
-          <input type="text" id="prod-img-detail" placeholder="images/products/name-detail.png">
+          <label>细节图</label>
+          <input type="text" id="prod-img-detail" placeholder="images/products/xxx-detail.webp">
         </div>
         <div class="form-group">
-          <label>Wear Image</label>
-          <input type="text" id="prod-img-wear" placeholder="images/products/name-wear.png">
+          <label>佩戴图</label>
+          <input type="text" id="prod-img-wear" placeholder="images/products/xxx-wear.webp">
         </div>
         <div class="form-group">
-          <label>Scene Image</label>
-          <input type="text" id="prod-img-scene" placeholder="images/products/name-scene.png">
+          <label>场景图</label>
+          <input type="text" id="prod-img-scene" placeholder="images/products/xxx-scene.webp">
         </div>
       </div>
 
-      <h4 style="margin: 1rem 0 0.5rem;">Specs</h4>
+      <h4 style="margin: 1rem 0 0.5rem;">详细规格</h4>
       <div class="form-grid">
-        <div class="form-group form-full"><label>Materials</label><input type="text" id="prod-specs-materials"></div>
-        <div class="form-group form-full"><label>Size</label><input type="text" id="prod-specs-size"></div>
-        <div class="form-group form-full"><label>Weight</label><input type="text" id="prod-specs-weight"></div>
-        <div class="form-group form-full"><label>Care</label><input type="text" id="prod-specs-care"></div>
-        <div class="form-group form-full"><label>Origin</label><input type="text" id="prod-specs-origin"></div>
+        <div class="form-group form-full"><label>材质说明</label><input type="text" id="prod-specs-materials" placeholder="详细材质"></div>
+        <div class="form-group form-full"><label>尺寸</label><input type="text" id="prod-specs-size" placeholder="可调节 6.5–8 英寸"></div>
+        <div class="form-group form-full"><label>重量</label><input type="text" id="prod-specs-weight" placeholder="约 15g"></div>
+        <div class="form-group form-full"><label>保养方式</label><input type="text" id="prod-specs-care" placeholder="保持干燥..."></div>
+        <div class="form-group form-full"><label>产地</label><input type="text" id="prod-specs-origin" placeholder="原料产地 | 组装地"></div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeProductModal()">Cancel</button>
-      <button class="btn btn-primary" id="modal-save-btn" onclick="saveProduct()">Save Product</button>
+      <button class="btn btn-ghost" onclick="closeProductModal()">取消</button>
+      <button class="btn btn-primary" id="modal-save-btn" onclick="saveProduct()">保存商品</button>
     </div>
   </div>
 
-  <!-- Toast -->
+  <!-- 提示消息 -->
   <div class="toast" id="toast"></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
   <script src="admin.js"></script>
 </body>
 </html>
