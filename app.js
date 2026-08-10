@@ -5,22 +5,53 @@
 let products = [];
 let settings = {};
 
-// --- Load data from data.json ---
+// --- Load data: Supabase first, fallback to data.json ---
 async function loadData() {
+  // Try Supabase first (real-time, managed by admin)
+  if (DB.isReady()) {
+    try {
+      const [dbProducts, dbSettings] = await Promise.all([
+        DB.getProducts(true),
+        DB.getSettings()
+      ]);
+      if (dbProducts && dbProducts.length > 0) {
+        products = dbProducts;
+        settings = dbSettings || {};
+        console.log('🌱 Loaded from Supabase:', products.length, 'products');
+        return true;
+      }
+    } catch (e) {
+      console.warn('Supabase unavailable, falling back to data.json:', e.message);
+    }
+  }
+
+  // Fallback to data.json (for when Supabase isn't configured yet)
   try {
     const resp = await fetch('data.json');
     const data = await resp.json();
     products = data.products.filter(p => p.active !== false);
     settings = data.settings || {};
+    console.log('🌱 Loaded from data.json:', products.length, 'products');
     return true;
   } catch (err) {
-    console.error('Failed to load data.json, using fallback', err);
+    console.error('Failed to load data', err);
     return false;
   }
 }
 
 // --- Cart State ---
 let cart = [];
+
+// Persist cart across pages (so Add to Cart works from product pages too)
+function saveCart() {
+  try { localStorage.setItem('terrene_cart', JSON.stringify(cart)); } catch (e) {}
+}
+function loadCart() {
+  try {
+    const saved = localStorage.getItem('terrene_cart');
+    if (saved) cart = JSON.parse(saved);
+  } catch (e) { cart = []; }
+}
 
 // --- Get product by ID ---
 function getProduct(id) {
@@ -176,12 +207,20 @@ function addToCart(productId) {
   } else {
     cart.push({ ...product, quantity: 1 });
   }
+  saveCart();
   updateCart();
   openCart();
 }
 
 function removeFromCart(productId) {
   cart = cart.filter(item => item.id !== parseInt(productId));
+  saveCart();
+  updateCart();
+}
+
+function clearCart() {
+  cart = [];
+  saveCart();
   updateCart();
 }
 
@@ -215,6 +254,7 @@ function updateCart() {
     const totalEl = document.getElementById('cart-total-price');
     if (totalEl) totalEl.textContent = `$${total}.00`;
   }
+  renderPayPalButton();
 }
 
 function openCart() {
@@ -246,9 +286,143 @@ function initSmoothScroll() {
   });
 }
 
+// --- PayPal Checkout (no backend needed) ---
+function getCartTotals() {
+  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const threshold = Number(settings.freeShippingThreshold) || 50;
+  const shipping = subtotal >= threshold ? 0 : 5; // $5 flat shipping under threshold
+  return { subtotal, shipping, total: subtotal + shipping };
+}
+
+function renderPayPalButton() {
+  const container = document.getElementById('paypal-button-container');
+  const fallback = document.getElementById('checkout-fallback');
+  if (!container) return;
+
+  // No items -> hide everything
+  if (cart.length === 0) {
+    container.innerHTML = '';
+    if (fallback) fallback.style.display = 'none';
+    return;
+  }
+
+  // If the PayPal SDK is not loaded (client-id not configured yet), show fallback
+  if (typeof paypal === 'undefined' || !paypal.Buttons) {
+    container.innerHTML = '';
+    if (fallback) {
+      fallback.style.display = 'block';
+      fallback.onclick = () => alert('PayPal checkout is being set up. Please contact us at ' + (settings.contactEmail || 'hello@terrene.shop') + ' to complete your order.');
+    }
+    return;
+  }
+
+  // Render the real PayPal Smart Button
+  container.innerHTML = '';
+  if (fallback) fallback.style.display = 'none';
+  try {
+    paypal.Buttons({
+      style: { layout: 'vertical', color: 'gold', shape: 'pill', label: 'paypal', height: 45 },
+      createOrder: function(data, actions) {
+        const { subtotal, shipping, total } = getCartTotals();
+        const items = cart.map(i => ({
+          name: (i.name || 'Item').substring(0, 127),
+          unit_amount: { currency_code: 'USD', value: Number(i.price).toFixed(2) },
+          quantity: String(i.quantity)
+        }));
+        if (shipping > 0) {
+          items.push({
+            name: 'Shipping',
+            unit_amount: { currency_code: 'USD', value: shipping.toFixed(2) },
+            quantity: '1'
+          });
+        }
+        return actions.order.create({
+          purchase_units: [{
+            description: 'Terrene — Wear the Earth',
+            amount: {
+              currency_code: 'USD',
+              value: total.toFixed(2),
+              breakdown: {
+                item_total: { currency_code: 'USD', value: subtotal.toFixed(2) },
+                shipping: { currency_code: 'USD', value: shipping.toFixed(2) }
+              }
+            },
+            items: items
+          }]
+        });
+      },
+      onApprove: function(data, actions) {
+        const orderTotal = getCartTotals().total;
+        return actions.order.capture().then(async function(details) {
+          const order = {
+            order_id: 'TER-' + Date.now().toString(36).toUpperCase(),
+            paypal_order_id: data.orderID,
+            customer_email: details.payer?.email_address || '',
+            customer_name: (details.payer?.name?.given_name || '') + ' ' + (details.payer?.name?.surname || ''),
+            items: cart.map(i => ({ name: i.name, price: i.price, quantity: i.quantity })),
+            total: orderTotal,
+            status: 'paid',
+            created_at: new Date().toISOString()
+          };
+
+          // Write to Supabase (if configured) so admin sees real orders
+          if (DB.isReady()) {
+            try {
+              await DB.createOrder(order);
+              console.log('Order saved to Supabase:', order.order_id);
+              // Send email notification
+              sendOrderEmail(order);
+            } catch (e) {
+              console.error('Failed to save order to Supabase:', e);
+            }
+          }
+
+          // Also save locally as backup
+          try {
+            const orders = JSON.parse(localStorage.getItem('terrene_orders') || '[]');
+            orders.push(order);
+            localStorage.setItem('terrene_orders', JSON.stringify(orders));
+          } catch (e) {}
+
+          clearCart();
+          showOrderConfirmation(order);
+        });
+      },
+      onError: function(err) {
+        alert('Something went wrong with the payment. Please try again or contact us.');
+        console.error('PayPal error:', err);
+      }
+    }).render(container);
+  } catch (e) {
+    console.error('PayPal render failed:', e);
+  }
+}
+
+// --- Order Confirmation Modal ---
+function showOrderConfirmation(order) {
+  const overlay = document.createElement('div');
+  overlay.className = 'confirm-overlay';
+  overlay.innerHTML = `
+    <div class="confirm-modal">
+      <div class="confirm-check">✓</div>
+      <h2>Thank you for your order!</h2>
+      <p class="confirm-sub">Your piece from the earth is on its way.</p>
+      <div class="confirm-order">
+        <div><span>Order</span><strong>${order.order_id || order.id}</strong></div>
+        <div><span>Total</span><strong>$${(order.total || 0).toFixed(2)} USD</strong></div>
+        ${(order.customer_email || order.payer) ? `<div><span>Email</span><strong>${order.customer_email || order.payer}</strong></div>` : ''}
+      </div>
+      <p class="confirm-note">We'll email you shipping updates. Save your order number to track it.</p>
+      <a href="/" class="btn btn-primary btn-block" onclick="this.closest('.confirm-overlay').remove()">Continue Browsing</a>
+    </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+}
+
 // --- Init ---
 document.addEventListener('DOMContentLoaded', async () => {
   await loadData();
+  loadCart();
 
   // Update announcement bar if settings loaded
   if (settings.announcement) {
