@@ -962,6 +962,73 @@ a {
   color: var(--color-earth);
 }
 
+.checkout-note {
+  font-size: 0.72rem;
+  color: var(--color-stone);
+  text-align: center;
+  margin-top: var(--space-xs);
+  letter-spacing: 0.02em;
+}
+
+/* --- Order Confirmation Modal --- */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 33, 25, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: var(--space-md);
+  animation: fadeIn 0.3s ease;
+}
+.confirm-modal {
+  background: #fff;
+  border-radius: 18px;
+  max-width: 380px;
+  width: 100%;
+  padding: var(--space-lg);
+  text-align: center;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+}
+.confirm-check {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-sage);
+  color: #fff;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-sm);
+}
+.confirm-modal h2 {
+  font-family: var(--font-display);
+  color: var(--color-earth);
+  margin-bottom: var(--space-xs);
+}
+.confirm-sub { color: var(--color-stone); margin-bottom: var(--space-md); }
+.confirm-order {
+  background: var(--color-cream);
+  border-radius: 12px;
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-sm);
+  text-align: left;
+}
+.confirm-order div {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-light);
+}
+.confirm-order div:last-child { border-bottom: none; }
+.confirm-order span { color: var(--color-stone); }
+.confirm-order strong { color: var(--color-earth); }
+.confirm-note { font-size: 0.78rem; color: var(--color-stone); margin-bottom: var(--space-md); }
+
 /* --- Product Image --- */
 .product-image img {
   width: 100%;
